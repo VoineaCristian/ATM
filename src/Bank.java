@@ -1,24 +1,35 @@
+import enums.CurrencyType;
+import exception.NotEnoughMoney;
+import exception.NotEnoughPennies;
+import exception.RunOutOfMoney;
+import factory.MessageFactory;
+import model.Message;
 import model.Receipt;
 
-import java.util.EmptyStackException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Bank {
 
-    private int unLeu;
-    private int cinciLei;
-    private int zeceLei;
-    private int cinciZeciLei;
-    private int oSutaLei;
-    private int totalAmountOfMoney;
+    private CurrencyType currencyType;
+    private List<CurrencyType> money;
+    private List<Integer> moneyStatus;
     private static Bank instance;
+    private List<Message> mailbox;
+    private int availableAmount;
 
     private Bank(){
-        this.unLeu = 100;
-        this.cinciLei = 100;
-        this.zeceLei = 100;
-        this.cinciZeciLei = 50;
-        this.oSutaLei = 50;
-        this.totalAmountOfMoney = 9100;
+
+
+        this.money = new ArrayList();
+        this.moneyStatus = new ArrayList<>();
+        this.money = Arrays.stream(CurrencyType.values()).map(s->(CurrencyType)s).collect(Collectors.toList());
+        this.money.forEach(moneyType->{
+            moneyStatus.add(moneyType.getInitialCount());
+            availableAmount += moneyType.getValue()*moneyType.getInitialCount();
+        });
+        this.mailbox = new ArrayList<>();
+
     }
 
     public static Bank getInstance() {
@@ -29,51 +40,89 @@ public class Bank {
         return instance;
     }
 
-    public Receipt getAmountOf(int amount){
 
-        int nrOfUnLeuBnk = 0;
-        int nrOfCinciLeiBnk = 0;
-        int nrOfZeceLeiBnk = 0;
-        int nrOfCinciZeciLeiBnk = 0;
-        int nrOfOSutaLeiBnk = 0;
+    public Receipt getAmountOf(int amount) throws NotEnoughPennies, NotEnoughMoney,RunOutOfMoney {
 
-        nrOfOSutaLeiBnk = Math.min(amount / 100, this.oSutaLei);
-        amount -= nrOfOSutaLeiBnk*100;
+        ArrayList<Integer> dueMoney = new ArrayList<>(CurrencyType.values().length);
+        Iterator iterator = money.iterator();
+        List<Integer> resourcesBackup = new ArrayList<>(moneyStatus);
 
-        nrOfCinciLeiBnk = Math.min(amount / 50, this.cinciZeciLei);
-        amount -= nrOfCinciZeciLeiBnk*50;
+        if(!this.validAmount(amount)){
+            throw new NotEnoughMoney();
+        }
 
-        nrOfZeceLeiBnk= Math.min(amount / 10, this.zeceLei);
-        amount -= nrOfZeceLeiBnk*10;
+        if(this.availableAmount == 0){
+            throw new RunOutOfMoney();
+        }
 
-        nrOfCinciLeiBnk = Math.min(amount / 5, this.cinciLei);
-        amount -= nrOfCinciLeiBnk*5;
+        while(iterator.hasNext())
+        {
+            CurrencyType moneyType = (CurrencyType) iterator.next();
+            int moneyIndex = CurrencyType.valueOf(moneyType.name()).ordinal();
+            int billValue = moneyType.getValue();
+            int availableBills = moneyStatus.get(moneyIndex);
+            int nrOfUsedBills = Math.min(amount / billValue, availableBills);
+            float percOfUsedMoney = 0;
 
-        nrOfUnLeuBnk = Math.min(amount, this.unLeu);
-        amount -= nrOfUnLeuBnk;
+            amount -= nrOfUsedBills*moneyType.getValue();
+            availableBills -= nrOfUsedBills;
+            moneyStatus.set(moneyIndex, availableBills);
+            dueMoney.add(moneyIndex, nrOfUsedBills);
+            percOfUsedMoney = (float)availableBills/moneyType.getInitialCount();
 
 
-        return new Receipt(nrOfUnLeuBnk, nrOfCinciLeiBnk, nrOfZeceLeiBnk, nrOfCinciZeciLeiBnk, nrOfOSutaLeiBnk);
+            if(moneyType == CurrencyType.LEU_100 && percOfUsedMoney < 0.2){
+                addNewMail(billValue, percOfUsedMoney);
+            } else if(moneyType == CurrencyType.LEU_50 && percOfUsedMoney < 0.15){
+                addNewMail(billValue, percOfUsedMoney);
+            }
 
+        }
+
+
+        if(amount != 0){
+            this.moneyStatus = resourcesBackup;
+            if(amount < 5 && availableAmount >= 5){
+                throw new NotEnoughPennies();
+            }
+            throw new NotEnoughMoney();
+        }
+
+
+        return new Receipt(dueMoney);
     }
+
 
     public boolean validAmount(int amount){
-        return amount < this.totalAmountOfMoney;
+        return amount < this.availableAmount;
     }
 
-    @Override
-    public String toString() {
-        return "Bank{" +
-                "unLeu=" + unLeu +
-                ", cinciLei=" + cinciLei +
-                ", zeceLei=" + zeceLei +
-                ", cinciZeciLei=" + cinciZeciLei +
-                ", oSutaLei=" + oSutaLei +
-                ", totalAmountOfMoney=" + totalAmountOfMoney +
+    public void addNewMail(int billValue, float percOfUsedMoney){
 
-                '}';
+        MessageFactory messageFactory = new MessageFactory();
+        Message msg = messageFactory.create(billValue, percOfUsedMoney, "fillMeUpPlease@superbancomat.com");
+        this.mailbox.add(msg);
+
+    }
+    public List<Message> getMailbox() {
+        return mailbox;
     }
 
+    public void setMailbox(List<Message> mailbox) {
+        this.mailbox = mailbox;
+    }
+
+    public void cleanMailbox() {
+        this.mailbox.clear();
+    }
+
+
+    public String toString(){
+
+        Receipt globalReceipt = new Receipt((ArrayList) this.moneyStatus);
+
+        return globalReceipt.toString();
+    }
 
 
 }

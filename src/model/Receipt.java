@@ -1,29 +1,36 @@
 package model;
 
+import enums.CurrencyType;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class Receipt {
 
-    private int unLeu;
-    private int cinciLei;
-    private int zeceLei;
-    private int cinciZeciLei;
-    private int oSutaLei;
+   private ArrayList<Integer> moneyCounter;
 
-    public Receipt(int unLeu, int cinciLei, int zeceLei, int cinciZeciLei, int oSutaLei) {
-        this.unLeu = unLeu;
-        this.cinciLei = cinciLei;
-        this.zeceLei = zeceLei;
-        this.cinciZeciLei = cinciZeciLei;
-        this.oSutaLei = oSutaLei;
+    public Receipt(ArrayList counter) {
+
+        this.moneyCounter = counter;
     }
 
     @Override
     public String toString() {
-        return "Receipt{" +
-                "unLeu=" + unLeu +
-                ", cinciLei=" + cinciLei +
-                ", zeceLei=" + zeceLei +
-                ", cinciZeciLei=" + cinciZeciLei +
-                ", oSutaLei=" + oSutaLei +
-                '}';
+
+        List<CurrencyType> money = Arrays.stream(CurrencyType.values()).map(s->(CurrencyType)s).collect(Collectors.toList());
+        StringBuilder printedReceipt = new StringBuilder("RECEIPT: { \n");
+
+        money.forEach(moneyType->{
+
+            int moneyIndex = moneyType.ordinal();
+            printedReceipt.append(moneyType.name() + " : " + moneyCounter.get(moneyIndex) + '\n');
+        });
+
+        printedReceipt.append("}");
+
+        return printedReceipt.toString();
     }
 }
