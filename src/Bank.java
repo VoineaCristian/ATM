@@ -46,6 +46,7 @@ public class Bank {
         ArrayList<Integer> dueMoney = new ArrayList<>(CurrencyType.values().length);
         Iterator iterator = money.iterator();
         List<Integer> resourcesBackup = new ArrayList<>(moneyStatus);
+        int availableAmountBackup = availableAmount;
 
         if(!this.validAmount(amount)){
             throw new NotEnoughMoney();
@@ -69,6 +70,7 @@ public class Bank {
             moneyStatus.set(moneyIndex, availableBills);
             dueMoney.add(moneyIndex, nrOfUsedBills);
             percOfUsedMoney = (float)availableBills/moneyType.getInitialCount();
+            this.availableAmount -= nrOfUsedBills*moneyType.getValue();
 
 
             if(moneyType == CurrencyType.LEU_100 && percOfUsedMoney < 0.2){
@@ -82,7 +84,9 @@ public class Bank {
 
         if(amount != 0){
             this.moneyStatus = resourcesBackup;
-            if(amount < 5 && availableAmount >= 5){
+            this.availableAmount = availableAmountBackup;
+            if(amount < 10 && this.availableAmount >= 10){
+                System.out.println(this.availableAmount);
                 throw new NotEnoughPennies();
             }
             throw new NotEnoughMoney();
@@ -94,7 +98,7 @@ public class Bank {
 
 
     public boolean validAmount(int amount){
-        return amount < this.availableAmount;
+        return amount <= this.availableAmount;
     }
 
     public void addNewMail(int billValue, float percOfUsedMoney){

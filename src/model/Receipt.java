@@ -13,7 +13,6 @@ public class Receipt {
    private ArrayList<Integer> moneyCounter;
 
     public Receipt(ArrayList counter) {
-
         this.moneyCounter = counter;
     }
 
@@ -21,12 +20,11 @@ public class Receipt {
     public String toString() {
 
         List<CurrencyType> money = Arrays.stream(CurrencyType.values()).map(s->(CurrencyType)s).collect(Collectors.toList());
-        StringBuilder printedReceipt = new StringBuilder("RECEIPT: { \n");
+        StringBuilder printedReceipt = new StringBuilder("RECEIPT: {");
 
         money.forEach(moneyType->{
-
             int moneyIndex = moneyType.ordinal();
-            printedReceipt.append(moneyType.name() + " : " + moneyCounter.get(moneyIndex) + '\n');
+            printedReceipt.append("[ "+ moneyType.name() + " : " + moneyCounter.get(moneyIndex) +   " ] ");
         });
 
         printedReceipt.append("}");

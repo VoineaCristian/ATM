@@ -1,25 +1,42 @@
+import exception.NotEnoughMoney;
+import exception.NotEnoughPennies;
+import exception.RunOutOfMoney;
+import model.Message;
 import model.Receipt;
 
-import java.util.EmptyStackException;
-import java.util.Scanner;
-import java.util.logging.Level;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class ATM {
 
     Bank bank = Bank.getInstance();
 
-    public Receipt withDraw(int amount){
+    public Receipt withDraw(int amount)  {
 
-        Receipt receipt;
+        Logger logger =  Logger.getLogger(ATM.class.getName());
+        Receipt receipt = null;
 
-        if(bank.getInstance().validAmount(amount)) {
+        try {
             receipt = bank.getInstance().getAmountOf(amount);
-        } else {
-            throw new EmptyStackException();
+        } catch (NotEnoughMoney NEM){
+            logger.warning(NEM.getMessage());
+        }catch (NotEnoughPennies NEP){
+            logger.warning(NEP.getMessage());
+        }catch (RunOutOfMoney ROOF){
+            logger.warning(ROOF.getMessage());
         }
+        this.sendMessages();
 
         return receipt;
+    }
+
+    public void sendMessages(){
+
+        List<Message> messages = bank.getMailbox();
+
+        messages.forEach(message-> System.out.println(message));
+        bank.cleanMailbox();
+
     }
 
     @Override
