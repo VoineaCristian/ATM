@@ -34,9 +34,10 @@ public class ATM {
 
         List<Message> messages = bank.getMailbox();
 
-        messages.forEach(message-> System.out.println(message));
-        bank.cleanMailbox();
-
+        if(!messages.isEmpty()) {
+            messages.forEach(message -> System.out.println(message));
+            bank.cleanMailbox();
+        }
     }
 
     @Override

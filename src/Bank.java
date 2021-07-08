@@ -1,4 +1,4 @@
-import enums.CurrencyType;
+import enums.MoneyType;
 import exception.NotEnoughMoney;
 import exception.NotEnoughPennies;
 import exception.RunOutOfMoney;
@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 
 public class Bank {
 
-    private CurrencyType currencyType;
-    private List<CurrencyType> money;
+    private List<MoneyType> money;
     private List<Integer> moneyStatus;
     private static Bank instance;
     private List<Message> mailbox;
@@ -20,16 +19,14 @@ public class Bank {
 
     private Bank(){
 
-
-        this.money = new ArrayList();
         this.moneyStatus = new ArrayList<>();
-        this.money = Arrays.stream(CurrencyType.values()).map(s->(CurrencyType)s).collect(Collectors.toList());
+        this.money = new ArrayList();
+        this.mailbox = new ArrayList<>();
+        this.money = Arrays.stream(MoneyType.values()).map(s->(MoneyType)s).collect(Collectors.toList());
         this.money.forEach(moneyType->{
-            moneyStatus.add(moneyType.getInitialCount());
+            this.moneyStatus.add(moneyType.getInitialCount());
             availableAmount += moneyType.getValue()*moneyType.getInitialCount();
         });
-        this.mailbox = new ArrayList<>();
-
     }
 
     public static Bank getInstance() {
@@ -40,26 +37,23 @@ public class Bank {
         return instance;
     }
 
-
     public Receipt getAmountOf(int amount) throws NotEnoughPennies, NotEnoughMoney,RunOutOfMoney {
 
-        ArrayList<Integer> dueMoney = new ArrayList<>(CurrencyType.values().length);
-        Iterator iterator = money.iterator();
+        ArrayList<Integer> dueMoney = new ArrayList<>(MoneyType.values().length);
+        Iterator moneyIterator = money.iterator();
         List<Integer> resourcesBackup = new ArrayList<>(moneyStatus);
         int availableAmountBackup = availableAmount;
 
         if(!this.validAmount(amount)){
-            throw new NotEnoughMoney();
+            if(availableAmount == 0){
+                throw new RunOutOfMoney();
+            } else  throw new NotEnoughMoney();
         }
 
-        if(this.availableAmount == 0){
-            throw new RunOutOfMoney();
-        }
-
-        while(iterator.hasNext())
+        while(moneyIterator.hasNext())
         {
-            CurrencyType moneyType = (CurrencyType) iterator.next();
-            int moneyIndex = CurrencyType.valueOf(moneyType.name()).ordinal();
+            MoneyType moneyType = (MoneyType) moneyIterator.next();
+            int moneyIndex = MoneyType.valueOf(moneyType.name()).ordinal();
             int billValue = moneyType.getValue();
             int availableBills = moneyStatus.get(moneyIndex);
             int nrOfUsedBills = Math.min(amount / billValue, availableBills);
@@ -72,26 +66,23 @@ public class Bank {
             percOfUsedMoney = (float)availableBills/moneyType.getInitialCount();
             this.availableAmount -= nrOfUsedBills*moneyType.getValue();
 
-
-            if(moneyType == CurrencyType.LEU_100 && percOfUsedMoney < 0.2){
+            if(moneyType == MoneyType.LEU_100 && percOfUsedMoney < 0.2){
                 addNewMail(billValue, percOfUsedMoney);
-            } else if(moneyType == CurrencyType.LEU_50 && percOfUsedMoney < 0.15){
+            } else if(moneyType == MoneyType.LEU_50 && percOfUsedMoney < 0.15){
                 addNewMail(billValue, percOfUsedMoney);
             }
-
         }
-
 
         if(amount != 0){
             this.moneyStatus = resourcesBackup;
             this.availableAmount = availableAmountBackup;
+
             if(amount < 10 && this.availableAmount >= 10){
                 System.out.println(this.availableAmount);
                 throw new NotEnoughPennies();
             }
             throw new NotEnoughMoney();
         }
-
 
         return new Receipt(dueMoney);
     }

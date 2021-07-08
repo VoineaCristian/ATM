@@ -16,6 +16,7 @@ public class Main {
         while(amount != -1){
             amount = s.nextInt();
             rcp = atm.withDraw(amount);
+
             if(rcp != null) {
                 System.out.println(rcp);
                 System.out.println("ATM STOCK " + atm);

@@ -1,8 +1,7 @@
 package model;
 
-import enums.CurrencyType;
+import enums.MoneyType;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +18,7 @@ public class Receipt {
     @Override
     public String toString() {
 
-        List<CurrencyType> money = Arrays.stream(CurrencyType.values()).map(s->(CurrencyType)s).collect(Collectors.toList());
+        List<MoneyType> money = Arrays.stream(MoneyType.values()).map(s->(MoneyType)s).collect(Collectors.toList());
         StringBuilder printedReceipt = new StringBuilder("RECEIPT: {");
 
         money.forEach(moneyType->{

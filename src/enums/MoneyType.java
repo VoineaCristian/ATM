@@ -1,10 +1,6 @@
 package enums;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-public enum CurrencyType {
+public enum MoneyType {
 
     LEU_100(100, 50),
     LEU_50(50, 50),
@@ -16,7 +12,7 @@ public enum CurrencyType {
     private final int initialCount;
 
 
-    CurrencyType(final int newValue, final int count ) {
+    MoneyType(final int newValue, final int count ) {
 
         this.value = newValue;
         this.initialCount = count;
