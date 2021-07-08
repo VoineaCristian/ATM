@@ -77,8 +77,7 @@ public class Bank {
             this.moneyStatus = resourcesBackup;
             this.availableAmount = availableAmountBackup;
 
-            if(amount < 10 && this.availableAmount >= 10){
-                System.out.println(this.availableAmount);
+            if(this.availableAmount >= amount){
                 throw new NotEnoughPennies();
             }
             throw new NotEnoughMoney();
